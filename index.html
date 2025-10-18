@@ -54,12 +54,14 @@
         .logo {
             height:90%;
             margin-left:2px;
+            cursor:pointer;
         }
 
         .title {
             font-size:22px;
             display:inline-block;
             margin-left:8px;
+            cursor:pointer;
             margin-top:7px;
         }
 
@@ -215,8 +217,8 @@
 </head>
 <body>
     <div class="nav">
-        <img src="shapes.png" class="logo">
-        <span class="title">Colour Studio</span>
+        <img src="shapes.png" onclick="window.location.href = 'https://jamesy-tech.github.io/jamesy-creator';" class="logo">
+        <span class="title" onclick="window.location.reload()">Colour Studio</span>
 
         <div class="right">
             <input id="colorPicker" type="color">
