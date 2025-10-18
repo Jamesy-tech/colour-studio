@@ -263,10 +263,10 @@
         <input type="range" min="0" max="200" value="100" class="slider" id="contrast">
     </div>
 
-    <div class="tool">
+   <!-- <div class="tool">
         <h3>Adjust Blur</h3>
         <input type="range" min="0" max="20" value="0" class="slider" id="blur">
-    </div>
+    </div> -->
 
     <div class="tool">
         <h3>Invert Colors</h3>
@@ -336,7 +336,6 @@ const brightness = document.getElementById('brightness');
 const saturation = document.getElementById('saturation');
 const hue = document.getElementById('hue');
 const contrast = document.getElementById('contrast');
-const blur = document.getElementById('blur');
 const invertBtn = document.getElementById('invertBtn');
 const grayscaleBtn = document.getElementById('grayscaleBtn');
 const sepiaBtn = document.getElementById('sepiaBtn');
@@ -355,28 +354,70 @@ const hexBtn = document.getElementById('hexBtn');
 const rgbBtn = document.getElementById('rgbBtn');
 const hslBtn = document.getElementById('hslBtn');
 
-let recentColors = JSON.parse(localStorage.getItem('recentColors')||'[]');
+let recentColors = JSON.parse(localStorage.getItem('recentColors') || '[]');
 let currentMode = 'HEX';
+let baseColor = '#ffffff';
 
-function hexToRgb(hex){const r=parseInt(hex.substr(1,2),16);const g=parseInt(hex.substr(3,2),16);const b=parseInt(hex.substr(5,2),16);return [r,g,b];}
-function rgbToHex(r,g,b){return "#"+[r,g,b].map(x=>parseInt(x).toString(16).padStart(2,'0')).join('');}
-function rgbToHsl(r,g,b){r/=255;g/=255;b/=255;const max=Math.max(r,g,b),min=Math.min(r,g,b);let h=0,s=0,l=(max+min)/2;if(max!==min){const d=max-min;s=l>0.5?d/(2-max-min):d/(max+min);switch(max){case r:h=(g-b)/d+(g<b?6:0);break;case g:h=(b-r)/d+2;break;case b:h=(r-g)/d+4;break;}h=h*60;}return `hsl(${Math.round(h)},${Math.round(s*100)}%,${Math.round(l*100)}%)`;}
+function hexToRgb(hex) {
+    const r = parseInt(hex.substr(1,2),16);
+    const g = parseInt(hex.substr(3,2),16);
+    const b = parseInt(hex.substr(5,2),16);
+    return [r,g,b];
+}
+
+function rgbToHex(r,g,b){
+    return "#" + [r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+
+function rgbToHsl(r,g,b){
+    r/=255; g/=255; b/=255;
+    const max=Math.max(r,g,b), min=Math.min(r,g,b);
+    let h=0,s=0,l=(max+min)/2;
+    if(max!==min){
+        const d=max-min;
+        s=l>0.5?d/(2-max-min):d/(max+min);
+        switch(max){
+            case r: h=(g-b)/d + (g<b?6:0); break;
+            case g: h=(b-r)/d +2; break;
+            case b: h=(r-g)/d +4; break;
+        }
+        h*=60;
+    }
+    return `hsl(${Math.round(h)},${Math.round(s*100)}%,${Math.round(l*100)}%)`;
+}
+
+function hslToRgb(h,s,l){
+    s/=100; l/=100;
+    const c=(1-Math.abs(2*l-1))*s;
+    const x=c*(1-Math.abs((h/60)%2-1));
+    const m=l-c/2;
+    let r=0,g=0,b=0;
+    if(h>=0 && h<60){r=c; g=x; b=0;}
+    else if(h>=60 && h<120){r=x; g=c; b=0;}
+    else if(h>=120 && h<180){r=0; g=c; b=x;}
+    else if(h>=180 && h<240){r=0; g=x; b=c;}
+    else if(h>=240 && h<300){r=x; g=0; b=c;}
+    else {r=c; g=0; b=x;}
+    return [Math.round((r+m)*255), Math.round((g+m)*255), Math.round((b+m)*255)];
+}
 
 function updateColor(color){
-    hexInput.value=color;
-    hexBox.value=color;
-    const [r,g,b]=hexToRgb(color);
-    rgbBox.value=`rgb(${r},${g},${b})`;
-    hslBox.value=rgbToHsl(r,g,b);
-    preview.style.background=color;
-    colorName.textContent=color;
+    baseColor = color;
+    colorPicker.value = color;
+    hexInput.value = color;
+    hexBox.value = color;
+    const [r,g,b] = hexToRgb(color);
+    rgbBox.value = `rgb(${r},${g},${b})`;
+    hslBox.value = rgbToHsl(r,g,b);
+    preview.style.background = color;
+    colorName.textContent = color;
 }
 
 function addRecentColor(color){
     if(!recentColors.includes(color)){
         recentColors.unshift(color);
         if(recentColors.length>8) recentColors.pop();
-        localStorage.setItem('recentColors',JSON.stringify(recentColors));
+        localStorage.setItem('recentColors', JSON.stringify(recentColors));
         renderRecentColors();
     }
 }
@@ -388,9 +429,28 @@ function renderRecentColors(){
         box.className='color-box';
         box.style.background=color;
         box.title=color;
-        box.addEventListener('click',()=>updateColor(color));
+        box.addEventListener('click', ()=>updateColor(color));
         recentColorsContainer.appendChild(box);
     });
+}
+
+function applyAdjustments(){
+    const [r,g,b] = hexToRgb(baseColor);
+    let hslMatch = rgbToHsl(r,g,b).match(/hsl\((\d+),(\d+)%,(\d+)%\)/);
+    let h=parseInt(hslMatch[1]) + parseInt(hue.value);
+    let s=parseInt(hslMatch[2]) * (saturation.value/100);
+    let l=parseInt(hslMatch[3]) * (brightness.value/100);
+    h = (h+360)%360;
+    s = Math.min(100, Math.max(0, s));
+    l = Math.min(100, Math.max(0, l));
+    const [nr,ng,nb] = hslToRgb(h,s,l);
+    const hex = rgbToHex(nr,ng,nb);
+    hexInput.value = hex;
+    colorPicker.value = hex;
+    hexBox.value = hex;
+    rgbBox.value = `rgb(${nr},${ng},${nb})`;
+    hslBox.value = `hsl(${h},${Math.round(s)}%,${Math.round(l)}%)`;
+    preview.style.background = hex;
 }
 
 hexBtn.addEventListener('click',()=>{
@@ -406,35 +466,65 @@ hslBtn.addEventListener('click',()=>{
     currentMode='HSL'; hexBtn.classList.remove('active'); rgbBtn.classList.remove('active'); hslBtn.classList.add('active');
 });
 
-colorPicker.addEventListener('change',()=>{updateColor(colorPicker.value); addRecentColor(colorPicker.value);});
-hexInput.addEventListener('change',()=>{const val=hexInput.value;if(/^#([0-9A-Fa-f]{6})$/.test(val)){updateColor(val); addRecentColor(val);}});
-hexInput.addEventListener('blur',()=>{const val=hexInput.value;if(/^#([0-9A-Fa-f]{6})$/.test(val)){updateColor(val); addRecentColor(val);}});
+colorPicker.addEventListener('change', ()=>updateColor(colorPicker.value));
+hexInput.addEventListener('change', ()=>{if(/^#([0-9A-Fa-f]{6})$/.test(hexInput.value)) updateColor(hexInput.value)});
+hexInput.addEventListener('blur', ()=>{if(/^#([0-9A-Fa-f]{6})$/.test(hexInput.value)) updateColor(hexInput.value)});
+brightness.addEventListener('input', applyAdjustments);
+saturation.addEventListener('input', applyAdjustments);
+hue.addEventListener('input', applyAdjustments);
 
-copyBtn.addEventListener('click',()=>{let text=currentMode==='HEX'?hexInput.value:currentMode==='RGB'?rgbBox.value:hslBox.value;navigator.clipboard.writeText(text);});
+invertBtn.addEventListener('click', ()=>preview.style.filter+=' invert(100%)');
+grayscaleBtn.addEventListener('click', ()=>preview.style.filter+=' grayscale(100%)');
+sepiaBtn.addEventListener('click', ()=>preview.style.filter+=' sepia(100%)');
 
-screenPick.onclick=async()=>{if(!window.EyeDropper){alert('Your browser does not support EyeDropper API');return;}const eye=new EyeDropper();const result=await eye.open();updateColor(result.sRGBHex);addRecentColor(result.sRGBHex);};
+tintColor.addEventListener('change', ()=>updateColor(tintColor.value));
+randomColorBtn.addEventListener('click', ()=>{
+    const rand='#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0');
+    updateColor(rand);
+    addRecentColor(rand);
+});
 
-brightness.addEventListener('input',updatePreviewFilter);
-saturation.addEventListener('input',updatePreviewFilter);
-hue.addEventListener('input',updatePreviewFilter);
-contrast.addEventListener('input',updatePreviewFilter);
-blur.addEventListener('input',updatePreviewFilter);
+complementaryBtn.addEventListener('click', ()=>{
+    const [r,g,b]=hexToRgb(hexInput.value);
+    const comp=rgbToHex(255-r,255-g,255-b);
+    updateColor(comp);
+    addRecentColor(comp);
+});
 
-function updatePreviewFilter(){preview.style.filter=`brightness(${brightness.value}%) saturate(${saturation.value}%) hue-rotate(${hue.value}deg) contrast(${contrast.value}%) blur(${blur.value}px)`;}
+triadicBtn.addEventListener('click', ()=>{
+    const [r,g,b]=hexToRgb(hexInput.value);
+    const colors=[rgbToHex(r,g,b), rgbToHex((r+120)%256,(g+120)%256,(b+120)%256), rgbToHex((r+240)%256,(g+240)%256,(b+240)%256)];
+    alert(colors.join(', '));
+});
 
-invertBtn.addEventListener('click',()=>{preview.style.filter += ' invert(100%)';});
-grayscaleBtn.addEventListener('click',()=>{preview.style.filter += ' grayscale(100%)';});
-sepiaBtn.addEventListener('click',()=>{preview.style.filter += ' sepia(100%)';});
+analogousBtn.addEventListener('click', ()=>{
+    const [r,g,b]=hexToRgb(hexInput.value);
+    const colors=[rgbToHex(r,g,b), rgbToHex((r+30)%256,(g+30)%256,(b+30)%256), rgbToHex((r+330)%256,(g+330)%256,(b+330)%256)];
+    alert(colors.join(', '));
+});
 
-tintColor.addEventListener('change',()=>{updateColor(tintColor.value); addRecentColor(tintColor.value);});
-randomColorBtn.addEventListener('click',()=>{const rand='#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0'); updateColor(rand); addRecentColor(rand);});
-complementaryBtn.addEventListener('click',()=>{const [r,g,b]=hexToRgb(hexInput.value); const comp=rgbToHex(255-r,255-g,255-b); updateColor(comp); addRecentColor(comp);});
-triadicBtn.addEventListener('click',()=>{const [r,g,b]=hexToRgb(hexInput.value); const colors=[rgbToHex(r,g,b), rgbToHex((r+120)%256,(g+120)%256,(b+120)%256), rgbToHex((r+240)%256,(g+240)%256,(b+240)%256)]; alert(colors.join(', '));});
-analogousBtn.addEventListener('click',()=>{const [r,g,b]=hexToRgb(hexInput.value); const colors=[rgbToHex(r,g,b), rgbToHex((r+30)%256,(g+30)%256,(b+30)%256), rgbToHex((r+330)%256,(g+330)%256,(b+330)%256)]; alert(colors.join(', '));});
+screenPick.onclick = async ()=>{
+    if(!window.EyeDropper){alert('Your browser does not support EyeDropper API'); return;}
+    const eye=new EyeDropper();
+    const result=await eye.open();
+    updateColor(result.sRGBHex);
+    addRecentColor(result.sRGBHex);
+};
 
-clearRecent.addEventListener('click',()=>{recentColors=[]; localStorage.setItem('recentColors',JSON.stringify(recentColors)); renderRecentColors();});
+copyBtn.addEventListener('click', ()=>{
+    let text=currentMode==='HEX'?hexInput.value:currentMode==='RGB'?rgbBox.value:hslBox.value;
+    navigator.clipboard.writeText(text);
+});
 
-hexBox.style.display='inline-block'; rgbBox.style.display='none'; hslBox.style.display='none';
+clearRecent.addEventListener('click', ()=>{
+    recentColors=[];
+    localStorage.setItem('recentColors', JSON.stringify(recentColors));
+    renderRecentColors();
+});
+
+hexBox.style.display='inline-block';
+rgbBox.style.display='none';
+hslBox.style.display='none';
 updateColor('#ffffff');
 renderRecentColors();
 </script>
