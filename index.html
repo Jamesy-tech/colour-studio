@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Colour Studio | Jamesy Creator</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="icon" href="icon.png">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+
+        * {
+            font-family: "Mulish";
+        }
+        
+        body {
+            font-family: "Mulish", sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .nav {
+            border-radius:0px;
+            flex:1;
+            height:50px;
+            padding-top:7px;
+            padding-left:10px;
+            display:flex;
+            background:aliceblue;
+            position:fixed;
+            top:0;
+            left:0;
+            right:0;
+            z-index:2;
+        }
+
+        .left-nav {
+            border-radius:0px;
+            width:70px;
+            margin-top:57px;
+            height:calc(100vh - 57px);
+            padding-top:7px;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            background:aliceblue;
+            position:fixed;
+        }
+
+        .logo {
+            height:90%;
+            margin-left:2px;
+        }
+
+        .title {
+            font-size:22px;
+            display:inline-block;
+            margin-left:8px;
+            margin-top:7px;
+        }
+
+        .right {
+            margin-left:auto;
+            padding-top:3px;
+            display:flex;
+            width:30%;
+        }
+
+        .right input {
+            font-family: monospace;
+        }
+
+        #colorPicker {
+            height:37px;
+            width:60px;
+            cursor:pointer;
+            outline:none;
+            border:solid whitesmoke 2px;
+            display:inline-block;
+            background:white;
+            border-top-left-radius:8px;
+            border-bottom-left-radius:8px;
+        }
+
+        #colorInput {
+            height:32px;
+            padding-left:10px;
+            display:inline-block;
+            outline:none;
+            background:white;
+            border:solid whitesmoke 2px;
+            width:80%;
+            border-top-right-radius:8px;
+            border-bottom-right-radius:8px;
+        }
+
+        .page-button {
+            width:80%;
+            margin-top:10px;
+            border-radius:12px;
+            height:40px;
+            background:white;
+            text-align:center;
+            line-height:40px;
+            font-family:"Mulish";
+            transition:0.3s;
+            cursor:pointer;
+            border:solid transparent 2px;
+        }
+
+        .page-button:hover {
+            border:solid dodgerblue 2px;
+        }
+
+        .page-button.active {
+            border:solid dodgerblue 2px;
+            font-weight:bold;
+        }
+
+        .main {
+            margin-left:72px;
+            margin-top:57px;
+            padding:20px;
+            width:calc(100% - 100px);
+            height:calc(100vh - 57px);
+            display:flex;
+            flex-direction:column;
+            gap:20px;
+            overflow-y:auto;
+        }
+
+        .converter {
+            display:flex;
+            gap:10px;
+        }
+
+        .converter input {
+            padding:6px 10px;
+            font-family: monospace;
+            border-radius:4px;
+            border: solid #ccc 1px;
+            width:160px;
+            text-align:center;
+        }
+
+        .tools {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+        }
+
+        .tool {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+            padding: 15px;
+            text-align: left;
+        }
+
+        .tool h3 {
+            margin: 0 0 10px;
+            font-size: 16px;
+        }
+
+        .recent-colors {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .color-box {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: 2px solid #ccc;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .color-box:hover {
+            transform: scale(1.1);
+            border-color: dodgerblue;
+        }
+
+        .slider {
+            width: 100%;
+        }
+
+        .copy-btn {
+            background: dodgerblue;
+            border: none;
+            color: white;
+            border-radius: 6px;
+            padding: 6px 10px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #0073e6;
+        }
+
+        .color-preview {
+            width: 100%;
+            height: 50px;
+            border-radius: 8px;
+            border: solid 2px #ccc;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <img src="shapes.png" class="logo">
+        <span class="title">Colour Studio</span>
+
+        <div class="right">
+            <input id="colorPicker" type="color">
+            <input id="colorInput" placeholder="#ffffff">
+        </div>
+    </div>
+
+    <div class="left-nav">
+        <div class="page-button active" id="hexBtn">HEX</div>
+        <div class="page-button" id="rgbBtn">RGB</div>
+        <div class="page-button" id="hslBtn">HSL</div>
+    </div>
+
+    <div class="main">
+        <div class="converter" id="converter">
+            <input id="hexBox" placeholder="#ffffff">
+            <input id="rgbBox" placeholder="rgb(255,255,255)">
+            <input id="hslBox" placeholder="hsl(0,0%,100%)">
+        </div>
+
+
+        <div class="tools">
+    <div class="tool">
+        <h3>Screen Color Picker</h3>
+        <button class="copy-btn" id="screenPick">Pick from screen</button>
+    </div>
+
+    <div class="tool">
+        <h3>Adjust Brightness</h3>
+        <input type="range" min="0" max="200" value="100" class="slider" id="brightness">
+    </div>
+
+    <div class="tool">
+        <h3>Adjust Saturation</h3>
+        <input type="range" min="0" max="200" value="100" class="slider" id="saturation">
+    </div>
+
+    <div class="tool">
+        <h3>Adjust Hue</h3>
+        <input type="range" min="0" max="360" value="0" class="slider" id="hue">
+    </div>
+
+    <div class="tool">
+        <h3>Adjust Contrast</h3>
+        <input type="range" min="0" max="200" value="100" class="slider" id="contrast">
+    </div>
+
+    <div class="tool">
+        <h3>Adjust Blur</h3>
+        <input type="range" min="0" max="20" value="0" class="slider" id="blur">
+    </div>
+
+    <div class="tool">
+        <h3>Invert Colors</h3>
+        <button class="copy-btn" id="invertBtn">Invert</button>
+    </div>
+
+    <div class="tool">
+        <h3>Grayscale</h3>
+        <button class="copy-btn" id="grayscaleBtn">Grayscale</button>
+    </div>
+
+    <div class="tool">
+        <h3>Sepia</h3>
+        <button class="copy-btn" id="sepiaBtn">Sepia</button>
+    </div>
+
+    <div class="tool">
+        <h3>Tint Overlay</h3>
+        <input type="color" id="tintColor" value="#ffffff">
+    </div>
+
+    <div class="tool">
+        <h3>Random Color</h3>
+        <button class="copy-btn" id="randomColor">Generate</button>
+    </div>
+
+    <div class="tool">
+        <h3>Complementary Color</h3>
+        <button class="copy-btn" id="complementary">Get</button>
+    </div>
+
+    <div class="tool">
+        <h3>Triadic Colors</h3>
+        <button class="copy-btn" id="triadicBtn">Get</button>
+    </div>
+
+    <div class="tool">
+        <h3>Analogous Colors</h3>
+        <button class="copy-btn" id="analogousBtn">Get</button>
+    </div>
+
+    <div class="tool">
+        <h3>Copy Color</h3>
+        <button class="copy-btn" id="copyBtn">Copy</button>
+    </div>
+
+    <div class="tool">
+        <h3>Color Preview</h3>
+        <div class="color-preview" id="colorPreview"></div>
+        <div id="colorName">No color selected</div>
+    </div>
+
+    <div class="tool">
+        <h3>Recent Colors</h3>
+        <div class="recent-colors" id="recentColors" style="margin-bottom:13px;"></div>
+        <button class="copy-btn" id="clearRecent">Clear Recent</button>
+    </div>
+</div>
+
+<script>
+const colorPicker = document.getElementById('colorPicker');
+const hexInput = document.getElementById('colorInput');
+const hexBox = document.getElementById('hexBox');
+const rgbBox = document.getElementById('rgbBox');
+const hslBox = document.getElementById('hslBox');
+const brightness = document.getElementById('brightness');
+const saturation = document.getElementById('saturation');
+const hue = document.getElementById('hue');
+const contrast = document.getElementById('contrast');
+const blur = document.getElementById('blur');
+const invertBtn = document.getElementById('invertBtn');
+const grayscaleBtn = document.getElementById('grayscaleBtn');
+const sepiaBtn = document.getElementById('sepiaBtn');
+const tintColor = document.getElementById('tintColor');
+const randomColorBtn = document.getElementById('randomColor');
+const complementaryBtn = document.getElementById('complementary');
+const triadicBtn = document.getElementById('triadicBtn');
+const analogousBtn = document.getElementById('analogousBtn');
+const preview = document.getElementById('colorPreview');
+const colorName = document.getElementById('colorName');
+const screenPick = document.getElementById('screenPick');
+const recentColorsContainer = document.getElementById('recentColors');
+const copyBtn = document.getElementById('copyBtn');
+const clearRecent = document.getElementById('clearRecent');
+const hexBtn = document.getElementById('hexBtn');
+const rgbBtn = document.getElementById('rgbBtn');
+const hslBtn = document.getElementById('hslBtn');
+
+let recentColors = JSON.parse(localStorage.getItem('recentColors')||'[]');
+let currentMode = 'HEX';
+
+function hexToRgb(hex){const r=parseInt(hex.substr(1,2),16);const g=parseInt(hex.substr(3,2),16);const b=parseInt(hex.substr(5,2),16);return [r,g,b];}
+function rgbToHex(r,g,b){return "#"+[r,g,b].map(x=>parseInt(x).toString(16).padStart(2,'0')).join('');}
+function rgbToHsl(r,g,b){r/=255;g/=255;b/=255;const max=Math.max(r,g,b),min=Math.min(r,g,b);let h=0,s=0,l=(max+min)/2;if(max!==min){const d=max-min;s=l>0.5?d/(2-max-min):d/(max+min);switch(max){case r:h=(g-b)/d+(g<b?6:0);break;case g:h=(b-r)/d+2;break;case b:h=(r-g)/d+4;break;}h=h*60;}return `hsl(${Math.round(h)},${Math.round(s*100)}%,${Math.round(l*100)}%)`;}
+
+function updateColor(color){
+    hexInput.value=color;
+    hexBox.value=color;
+    const [r,g,b]=hexToRgb(color);
+    rgbBox.value=`rgb(${r},${g},${b})`;
+    hslBox.value=rgbToHsl(r,g,b);
+    preview.style.background=color;
+    colorName.textContent=color;
+}
+
+function addRecentColor(color){
+    if(!recentColors.includes(color)){
+        recentColors.unshift(color);
+        if(recentColors.length>8) recentColors.pop();
+        localStorage.setItem('recentColors',JSON.stringify(recentColors));
+        renderRecentColors();
+    }
+}
+
+function renderRecentColors(){
+    recentColorsContainer.innerHTML='';
+    recentColors.forEach(color=>{
+        const box=document.createElement('div');
+        box.className='color-box';
+        box.style.background=color;
+        box.title=color;
+        box.addEventListener('click',()=>updateColor(color));
+        recentColorsContainer.appendChild(box);
+    });
+}
+
+hexBtn.addEventListener('click',()=>{
+    hexBox.style.display='inline-block'; rgbBox.style.display='none'; hslBox.style.display='none';
+    currentMode='HEX'; hexBtn.classList.add('active'); rgbBtn.classList.remove('active'); hslBtn.classList.remove('active');
+});
+rgbBtn.addEventListener('click',()=>{
+    hexBox.style.display='none'; rgbBox.style.display='inline-block'; hslBox.style.display='none';
+    currentMode='RGB'; hexBtn.classList.remove('active'); rgbBtn.classList.add('active'); hslBtn.classList.remove('active');
+});
+hslBtn.addEventListener('click',()=>{
+    hexBox.style.display='none'; rgbBox.style.display='none'; hslBox.style.display='inline-block';
+    currentMode='HSL'; hexBtn.classList.remove('active'); rgbBtn.classList.remove('active'); hslBtn.classList.add('active');
+});
+
+colorPicker.addEventListener('change',()=>{updateColor(colorPicker.value); addRecentColor(colorPicker.value);});
+hexInput.addEventListener('change',()=>{const val=hexInput.value;if(/^#([0-9A-Fa-f]{6})$/.test(val)){updateColor(val); addRecentColor(val);}});
+hexInput.addEventListener('blur',()=>{const val=hexInput.value;if(/^#([0-9A-Fa-f]{6})$/.test(val)){updateColor(val); addRecentColor(val);}});
+
+copyBtn.addEventListener('click',()=>{let text=currentMode==='HEX'?hexInput.value:currentMode==='RGB'?rgbBox.value:hslBox.value;navigator.clipboard.writeText(text);});
+
+screenPick.onclick=async()=>{if(!window.EyeDropper){alert('Your browser does not support EyeDropper API');return;}const eye=new EyeDropper();const result=await eye.open();updateColor(result.sRGBHex);addRecentColor(result.sRGBHex);};
+
+brightness.addEventListener('input',updatePreviewFilter);
+saturation.addEventListener('input',updatePreviewFilter);
+hue.addEventListener('input',updatePreviewFilter);
+contrast.addEventListener('input',updatePreviewFilter);
+blur.addEventListener('input',updatePreviewFilter);
+
+function updatePreviewFilter(){preview.style.filter=`brightness(${brightness.value}%) saturate(${saturation.value}%) hue-rotate(${hue.value}deg) contrast(${contrast.value}%) blur(${blur.value}px)`;}
+
+invertBtn.addEventListener('click',()=>{preview.style.filter += ' invert(100%)';});
+grayscaleBtn.addEventListener('click',()=>{preview.style.filter += ' grayscale(100%)';});
+sepiaBtn.addEventListener('click',()=>{preview.style.filter += ' sepia(100%)';});
+
+tintColor.addEventListener('change',()=>{updateColor(tintColor.value); addRecentColor(tintColor.value);});
+randomColorBtn.addEventListener('click',()=>{const rand='#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0'); updateColor(rand); addRecentColor(rand);});
+complementaryBtn.addEventListener('click',()=>{const [r,g,b]=hexToRgb(hexInput.value); const comp=rgbToHex(255-r,255-g,255-b); updateColor(comp); addRecentColor(comp);});
+triadicBtn.addEventListener('click',()=>{const [r,g,b]=hexToRgb(hexInput.value); const colors=[rgbToHex(r,g,b), rgbToHex((r+120)%256,(g+120)%256,(b+120)%256), rgbToHex((r+240)%256,(g+240)%256,(b+240)%256)]; alert(colors.join(', '));});
+analogousBtn.addEventListener('click',()=>{const [r,g,b]=hexToRgb(hexInput.value); const colors=[rgbToHex(r,g,b), rgbToHex((r+30)%256,(g+30)%256,(b+30)%256), rgbToHex((r+330)%256,(g+330)%256,(b+330)%256)]; alert(colors.join(', '));});
+
+clearRecent.addEventListener('click',()=>{recentColors=[]; localStorage.setItem('recentColors',JSON.stringify(recentColors)); renderRecentColors();});
+
+hexBox.style.display='inline-block'; rgbBox.style.display='none'; hslBox.style.display='none';
+updateColor('#ffffff');
+renderRecentColors();
+</script>
+
+
+
+
+</body>
+</html>
